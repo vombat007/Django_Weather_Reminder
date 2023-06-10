@@ -22,9 +22,11 @@ class CitySerializer(serializers.ModelSerializer):
 
 
 class SubscriptionSerializer(serializers.ModelSerializer):
+    last_notification_sent = serializers.DateTimeField(read_only=True, default=None)
+
     class Meta:
         model = Subscription
-        fields = '__all__'
+        fields = ['id', 'user', 'city', 'period', 'last_notification_sent']
 
 
 class GitHubRegistrationSerializer(serializers.Serializer):
