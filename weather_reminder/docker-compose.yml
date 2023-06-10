@@ -1,0 +1,47 @@
+version: "3.11"
+
+services:
+  weather_reminder:
+    user: "root"
+    image: weather_reminder_docker:latest
+    container_name: weather_reminder_docker
+
+    env_file:
+      - ./.env
+    command: >
+      bash -c "python manage.py makemigrations --settings=weather_reminder.settings.prod && python manage.py migrate --settings=weather_reminder.settings.prod &&  gunicorn --bind 0.0.0.0:8000 --env DJANGO_SETTINGS_MODULE=weather_reminder.settings.prod weather_reminder.wsgi:application"
+
+
+  redis:
+    image: redis:latest
+    container_name: weather_reminder_redis
+    depends_on:
+      - weather_reminder
+    ports:
+      - "6379:6379"
+
+  nginx:
+    build:
+      dockerfile: docker/nginx/Dockerfile
+      context: docker/nginx
+    container_name: weather_reminder_nginx
+    image: weather_reminder_nginx
+    depends_on:
+      - weather_reminder
+    ports:
+      - "${NGINX_EXTERNAL_PORT}:80"
+
+  celery_worker:
+    image: weather_reminder_docker:latest
+    container_name: weather_reminder_celery_worker
+    depends_on:
+      - redis
+    command: celery -A weather_reminder worker --loglevel=INFO
+
+  celery_beat:
+    image: weather_reminder_docker:latest
+    container_name: weather_reminder_celery_beat
+    depends_on:
+      - celery_worker
+      - redis
+    command: celery -A weather_reminder beat --loglevel=INFO

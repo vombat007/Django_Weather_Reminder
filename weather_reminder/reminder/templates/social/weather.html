@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Weather Notification</title>
+</head>
+<body>
+    <h1>Weather Notification</h1>
+    <p>Hello {{ user.email }},</p>
+    <p>Here is the weather information for the cities you subscribed to:</p>
+
+    {% for city, weather_info in city_weather_data %}
+        <h2>{{ city }}</h2>
+        <p>{{ weather_info }}</p>
+    {% endfor %}
+
+    <p>Thank you for using our weather notification service.</p>
+    <p>Best regards,</p>
+    <p>Your Weather Notification Team</p>
+</body>
+</html>
