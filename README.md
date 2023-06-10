@@ -39,6 +39,14 @@ docker build -t weather_reminder_docker .
 docker compose up
 docker compos down
 ```
+## Documentation by Swagger
+### See url of documentation
+~~~ 
+http://your_ip/api/docs/
+
+http://your_ip/api/schema/
+~~~
+
 
 ## Use to fill database:
 
