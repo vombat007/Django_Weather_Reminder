@@ -4,7 +4,6 @@ from django.template.loader import render_to_string
 from django.utils import timezone
 from django.utils.html import strip_tags
 from rest_framework_simplejwt.tokens import RefreshToken
-
 from .models import Weather, Subscription
 from weather_reminder.settings.base import env
 

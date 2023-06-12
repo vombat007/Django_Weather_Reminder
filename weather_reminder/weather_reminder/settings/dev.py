@@ -9,6 +9,9 @@ INTERNAL_IPS = [
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',

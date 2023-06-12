@@ -4,6 +4,8 @@ from rest_framework import generics, status
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.views import APIView
+from rest_framework_simplejwt.authentication import JWTAuthentication
+
 from .models import City, Subscription
 from .serializers import UserSerializer, CitySerializer, SubscriptionSerializer, GitHubRegistrationSerializer
 from rest_framework.response import Response
@@ -67,6 +69,7 @@ class CityListCreateView(generics.ListCreateAPIView):
 
 class SubscriptionListCreateView(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
     queryset = Subscription.objects.all()
     serializer_class = SubscriptionSerializer
 
@@ -83,7 +86,9 @@ class SubscriptionListCreateView(generics.ListCreateAPIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Proceed with creating the new subscription
+        # Associate the logged-in user with the subscription
+        request.data['user'] = user.id
+
         return super().create(request, *args, **kwargs)
 
 
