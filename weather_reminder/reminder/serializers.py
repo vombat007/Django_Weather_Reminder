@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from drf_spectacular.utils import extend_schema_serializer
 from rest_framework import serializers
 from .models import User, City, Subscription
 
@@ -21,6 +22,7 @@ class CitySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+@extend_schema_serializer(exclude_fields='user')
 class SubscriptionSerializer(serializers.ModelSerializer):
     last_notification_sent = serializers.DateTimeField(read_only=True, default=None)
 

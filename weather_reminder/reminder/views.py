@@ -1,11 +1,11 @@
 from django.contrib.auth import get_user_model
+from django.http import QueryDict
 from django.shortcuts import render
 from rest_framework import generics, status
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
-
 from .models import City, Subscription
 from .serializers import UserSerializer, CitySerializer, SubscriptionSerializer, GitHubRegistrationSerializer
 from rest_framework.response import Response
@@ -69,9 +69,9 @@ class CityListCreateView(generics.ListCreateAPIView):
 
 class SubscriptionListCreateView(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
-    authentication_classes = [JWTAuthentication]
     queryset = Subscription.objects.all()
     serializer_class = SubscriptionSerializer
+    authentication_classes = [JWTAuthentication]
 
     def create(self, request, *args, **kwargs):
         user = request.user
@@ -86,8 +86,17 @@ class SubscriptionListCreateView(generics.ListCreateAPIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Associate the logged-in user with the subscription
-        request.data['user'] = user.id
+        # Create a mutable copy of the request data
+        mutable_data = request.data.copy()
+        # Assign the user ID from the JWT token to the user field
+        mutable_data['user'] = user.id
+
+        # Create a new QueryDict instance with the modified data
+        modified_request_data = QueryDict('', mutable=True)
+        modified_request_data.update(mutable_data)
+
+        # Set the modified data in the request object
+        request._full_data = modified_request_data
 
         return super().create(request, *args, **kwargs)
 
