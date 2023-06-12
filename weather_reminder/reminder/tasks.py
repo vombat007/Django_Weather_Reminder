@@ -40,5 +40,14 @@ def send_weather_notifications():
             print(f"No weather data found for city: {city}")
 
     for user, city_weather_data in user_weather_data.items():
-        send_weather_email(user, city_weather_data)
-        print('Email sent')
+        cities = set()
+        filtered_city_weather_data = []
+
+        for city, weather_info in city_weather_data:
+            if city not in cities:
+                filtered_city_weather_data.append((city, weather_info))
+                cities.add(city)
+
+        if filtered_city_weather_data:
+            send_weather_email(user, filtered_city_weather_data)
+            print('Email sent')
