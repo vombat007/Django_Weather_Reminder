@@ -1,4 +1,7 @@
+from datetime import timedelta
+
 import requests
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.utils import timezone
@@ -34,31 +37,35 @@ def send_weather_email(user, city_weather_data):
 def fetch_weather_data():
     subscriptions = Subscription.objects.all()
     processed_cities = set()
-
+    current_time = timezone.now()
     for subscription in subscriptions:
         city = subscription.city
+        period_hours = subscription.period
 
         if city in processed_cities:
             continue
 
-        weather_data = get_weather_data(city.name)
-        if weather_data:
-            temperature = weather_data['main']['temp']
-            weather_conditions = weather_data['weather'][0]['description']
-            feels_like = weather_data['main']['feels_like']
-            timestamp = timezone.now()
+        if subscription.last_notification_sent is None or (
+                current_time - subscription.last_notification_sent) >= timedelta(hours=period_hours):
+            weather_data = get_weather_data(city.name)
 
-            Weather.objects.create(
-                city=city,
-                temperature=round(temperature, 1),
-                weather_conditions=weather_conditions,
-                feels_like=round(feels_like, 1),
-                timestamp=timestamp
-            )
+            if weather_data:
+                temperature = weather_data['main']['temp']
+                weather_conditions = weather_data['weather'][0]['description']
+                feels_like = weather_data['main']['feels_like']
+                timestamp = timezone.now()
 
-            processed_cities.add(city)
+                Weather.objects.create(
+                    city=city,
+                    temperature=round(temperature, 1),
+                    weather_conditions=weather_conditions,
+                    feels_like=round(feels_like, 1),
+                    timestamp=timestamp
+                )
 
-    print('Weather data successfully fetched and stored')
+                processed_cities.add(city)
+
+                print('Weather data successfully fetched and stored')
 
 
 def generate_jwt_token(user):
