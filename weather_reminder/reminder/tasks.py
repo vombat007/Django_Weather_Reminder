@@ -12,9 +12,7 @@ def send_weather_notifications():
     current_time = timezone.now()
     fetch_weather_data()
 
-    subscriptions = Subscription.objects.filter(
-        period__lte=current_time.hour
-    ).select_related('user', 'city')
+    subscriptions = Subscription.objects.select_related('user', 'city')
 
     user_weather_data = defaultdict(list)
 
@@ -29,12 +27,17 @@ def send_weather_notifications():
                            f"Feels Like: {latest_weather.feels_like}"
 
             last_notification_sent = subscription.last_notification_sent
+            last_weather_request = city.last_weather_request
 
             if last_notification_sent is None or (
                     current_time - last_notification_sent) >= timedelta(hours=subscription.period):
-                user_weather_data[user].append((city, weather_info))
-                subscription.last_notification_sent = current_time
-                subscription.save()
+                if last_weather_request is None or (
+                        current_time - last_weather_request) >= timedelta(hours=subscription.period):
+                    user_weather_data[user].append((city, weather_info))
+                    subscription.last_notification_sent = current_time
+                    city.last_weather_request = current_time
+                    subscription.save()
+                    city.save()
 
         except ObjectDoesNotExist:
             print(f"No weather data found for city: {city}")
